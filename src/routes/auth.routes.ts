@@ -10,5 +10,6 @@ const authenticationController = new AuthenticationController({ authenticationSe
 const authenticationRouter = Router();
 
 authenticationRouter.post("/register", authenticationController.register);
+authenticationRouter.post("/login", authenticationController.login);
 
 export { authenticationRouter };

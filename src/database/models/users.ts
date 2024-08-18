@@ -27,7 +27,12 @@ export type CreateUserDTO = {
   password: string;
 };
 
-export type CreatedUserResponse = {
+export type UserLoginDTO = {
+  email: string;
+  password: string;
+};
+
+export type AuthenticatedUserResponse = {
   id: string;
   email: string;
   token: string;

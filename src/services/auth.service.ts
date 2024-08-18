@@ -1,15 +1,19 @@
 import bcrypt from "bcrypt";
-import { CreatedUserResponse, CreateUserDTO } from "../database/models/users";
 import { UserRepository } from "../database/repositories/user.repository";
 import { createUserToken } from "../helpers/authentication/token";
+import type {
+  AuthenticatedUserResponse,
+  CreateUserDTO,
+  UserLoginDTO,
+} from "../database/models/users";
 
 type AuthenticationServiceDependencies = {
   userRepository: UserRepository;
 };
 
 export interface IAuthenticationService {
-  register(data: CreateUserDTO): Promise<CreatedUserResponse>;
-  login(data: any): Promise<any>;
+  register(data: CreateUserDTO): Promise<AuthenticatedUserResponse>;
+  login(data: UserLoginDTO): Promise<AuthenticatedUserResponse>;
 }
 
 export class AuthenticationService implements IAuthenticationService {
@@ -45,8 +49,22 @@ export class AuthenticationService implements IAuthenticationService {
     };
   }
 
-  async login(data: any) {
-    // TODO: Implement this method
-    return data;
+  async login(data: UserLoginDTO) {
+    const { email, password } = data;
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (!existingUser) throw new Error("User not found");
+
+    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    if (!isPasswordValid) throw new Error("Invalid password");
+
+    const token = createUserToken(existingUser.id, {
+      email: existingUser.email,
+    });
+
+    return {
+      id: existingUser.id,
+      email: existingUser.email,
+      token,
+    };
   }
 }

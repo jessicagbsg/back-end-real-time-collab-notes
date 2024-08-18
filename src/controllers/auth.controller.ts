@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IAuthenticationService } from "../services/auth.service";
 
-import type { CreateUserDTO } from "../database/models/users";
+import type { CreateUserDTO, UserLoginDTO } from "../database/models/users";
 
 type AuthenticationControllerDependencies = {
   authenticationService: IAuthenticationService;
@@ -9,7 +9,7 @@ type AuthenticationControllerDependencies = {
 
 export interface IAuthenticationController {
   register(req: Request, res: Response): Promise<void>;
-  login(data: any): Promise<any>;
+  login(req: Request, res: Response): Promise<void>;
 }
 
 export class AuthenticationController implements IAuthenticationController {
@@ -22,15 +22,24 @@ export class AuthenticationController implements IAuthenticationController {
   }
 
   async register(req: Request, res: Response) {
-    const data: CreateUserDTO = req.body;
-    if (!this.isEmailValid(data.email)) throw new Error("Invalid email");
-    const createdUser = await this.authenticationService.register(data);
-    if (!createdUser) throw new Error("Something went wrong when trying to create user");
-    res.status(201).json(createdUser);
+    try {
+      const data: CreateUserDTO = req.body;
+      if (!this.isEmailValid(data.email)) throw new Error("Invalid email");
+      const createdUser = await this.authenticationService.register(data);
+      res.status(201).json(createdUser);
+    } catch (error) {
+      res.status(409).json({ message: error.message });
+    }
   }
 
-  async login(data: any) {
-    return await this.authenticationService.login(data);
+  async login(req: Request, res: Response) {
+    try {
+      const data: UserLoginDTO = req.body;
+      const login = await this.authenticationService.login(data);
+      res.status(200).json(login);
+    } catch (error) {
+      res.status(401).json({ message: error.message });
+    }
   }
 
   private isEmailValid(email?: string): boolean {
