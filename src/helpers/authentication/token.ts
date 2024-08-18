@@ -1,0 +1,14 @@
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+
+dotenv.config();
+
+export function createUserToken(id: string, payload?: object): string {
+  return jwt.sign({ id, ...payload }, process.env.TOKEN_KEY, {
+    expiresIn: 3 * 24 * 60 * 60,
+  });
+}
+
+export function decodeToken(token: string) {
+  return jwt.verify(token, process.env.TOKEN_KEY);
+}
