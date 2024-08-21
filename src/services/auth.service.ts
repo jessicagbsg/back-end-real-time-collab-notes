@@ -29,7 +29,7 @@ export class AuthenticationService implements IAuthenticationService {
 
   async register(data: CreateUserDTO) {
     const { email, password } = data;
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) throw new Error("User already exists");
 
     const salt = await bcrypt.genSalt(10);
@@ -52,7 +52,7 @@ export class AuthenticationService implements IAuthenticationService {
 
   async login(data: UserLoginDTO) {
     const { email, password } = data;
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (!existingUser) throw new Error("User not found");
 
     const isPasswordValid = await bcrypt.compare(password, existingUser.password);
@@ -71,7 +71,7 @@ export class AuthenticationService implements IAuthenticationService {
 
   async getUserFromToken(token: string) {
     const { id } = decodeToken(token);
-    const user = await this.userRepository.findUserById(id);
+    const user = await this.userRepository.findById(id);
     return {
       id: user.id,
       email: user.email,

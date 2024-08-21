@@ -2,29 +2,26 @@ import { CreateUserDTO, UserModel } from "../models/users";
 
 export interface IUserRepository {
   createUser(data: CreateUserDTO): Promise<any>;
-  findUserByEmail(email: string): Promise<any>;
-  findUserById(id: string): Promise<any>;
+  findByEmail(email: string): Promise<any>;
+  findById(id: string): Promise<any>;
 }
 
 export class UserRepository implements IUserRepository {
   constructor() {
     this.createUser = this.createUser.bind(this);
-    this.findUserByEmail = this.findUserByEmail.bind(this);
-    this.findUserById = this.findUserById.bind(this);
+    this.findByEmail = this.findByEmail.bind(this);
+    this.findById = this.findById.bind(this);
   }
 
   async createUser(data: CreateUserDTO) {
-    // TODO: Implement this method
     return await UserModel.create(data);
   }
 
-  async findUserByEmail(email: string) {
-    // TODO: Implement this method
+  async findByEmail(email: string) {
     return await UserModel.findOne({ email });
   }
 
-  async findUserById(id: string) {
-    // TODO: Implement this method
+  async findById(id: string) {
     return await UserModel.findById(id);
   }
 }

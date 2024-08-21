@@ -34,12 +34,7 @@ export type CreateNoteDTO = {
   members?: string[];
 };
 
-export type UpdateNoteDTO = {
-  owner_id: string;
-  title?: string;
-  content?: string;
-  members?: string[];
-};
+export type UpdateNoteDTO = Omit<CreateNoteDTO, "owner_id">;
 
 export type CreatedNoteResponse = {
   title?: string;
@@ -47,6 +42,25 @@ export type CreatedNoteResponse = {
   owner_id: string;
   members?: string[];
   createdAt: Date;
+};
+
+export type FindNoteResponse = {
+  id: string;
+  title: string | null;
+  content: string | null;
+  owner_id: string;
+  members: string[] | null;
+  createdAt: Date;
+};
+
+export type UpdatedNoteResponse = {
+  id: string;
+  updated: boolean;
+};
+
+export type DeletedNoteResponse = {
+  id: string;
+  deleted: boolean;
 };
 
 export const NoteModel = mongoose.model("note", NoteSchema);

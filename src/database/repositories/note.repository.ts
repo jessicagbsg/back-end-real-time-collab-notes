@@ -1,16 +1,36 @@
-import { CreateNoteDTO, NoteModel } from "../models/notes";
+import { CreateNoteDTO, NoteModel, UpdateNoteDTO } from "../models/notes";
 
 export interface INoteRepository {
   create(data: CreateNoteDTO): Promise<any>;
+  findById(id: string): Promise<any>;
+  update(id: string, data: UpdateNoteDTO): Promise<boolean>;
+  delete(id: string): Promise<boolean>;
 }
 
 export class NoteRepository implements INoteRepository {
   constructor() {
     this.create = this.create.bind(this);
+    this.findById = this.findById.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
 
   async create(data: CreateNoteDTO) {
     const createdNote = await NoteModel.create(data);
     return createdNote.toObject();
+  }
+
+  async findById(id: string) {
+    return NoteModel.findById(id);
+  }
+
+  async update(id: string, data: UpdateNoteDTO) {
+    const updatedNote = await NoteModel.findByIdAndUpdate(id, { ...data, updatedAt: new Date() });
+    return updatedNote !== null;
+  }
+
+  async delete(id: string) {
+    const deletedNote = await NoteModel.findByIdAndUpdate(id, { deletedAt: new Date() });
+    return deletedNote !== null;
   }
 }
