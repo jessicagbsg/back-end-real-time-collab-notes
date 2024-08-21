@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "../database/repositories/user.repository";
-import { createUserToken } from "../helpers/authentication/token";
+import { createUserToken, decodeToken } from "../helpers/authentication/token";
 import type {
   AuthenticatedUserResponse,
   CreateUserDTO,
@@ -14,6 +14,7 @@ type AuthenticationServiceDependencies = {
 export interface IAuthenticationService {
   register(data: CreateUserDTO): Promise<AuthenticatedUserResponse>;
   login(data: UserLoginDTO): Promise<AuthenticatedUserResponse>;
+  getUserFromToken(token: string): Promise<Omit<AuthenticatedUserResponse, "token">>;
 }
 
 export class AuthenticationService implements IAuthenticationService {
@@ -65,6 +66,15 @@ export class AuthenticationService implements IAuthenticationService {
       id: existingUser.id,
       email: existingUser.email,
       token,
+    };
+  }
+
+  async getUserFromToken(token: string) {
+    const { id } = decodeToken(token);
+    const user = await this.userRepository.findUserById(id);
+    return {
+      id: user.id,
+      email: user.email,
     };
   }
 }

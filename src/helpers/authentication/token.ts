@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { AuthenticatedUserResponse } from "../../database/models/users";
 
 dotenv.config();
 
@@ -10,5 +11,7 @@ export function createUserToken(id: string, payload?: object): string {
 }
 
 export function decodeToken(token: string) {
-  return jwt.verify(token, process.env.TOKEN_KEY);
+  const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+  if (typeof decoded === "string") throw new Error("Invalid token");
+  return decoded;
 }

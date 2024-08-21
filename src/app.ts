@@ -1,6 +1,6 @@
-import express, { Router } from "express";
+import express from "express";
 import { appRoutes } from "./routes";
-import setupMiddlewares from "./config/middlewares";
+import setupMiddlewares from "./middlewares/middlewares";
 
 const app = express();
 setupMiddlewares(app);
