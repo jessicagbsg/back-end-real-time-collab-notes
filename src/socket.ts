@@ -40,49 +40,71 @@ export const setUpSocket = (
       const user = await authenticationService.getUserFromToken(
         socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
       );
-      if (!user) return console.log("Unauthorized");
+      if (!user) return;
+
       content.owner_id = user.id;
       const note = await noteService.create(content);
 
-      nsp.emit("created-note", note);
+      socket.join(note.room);
+      nsp.to(note.room).emit("created-note", note);
     });
 
-    socket.on("edit-note", async (content: UpdateNoteDTO & { id: string }) => {
+    socket.on("join-room", async (content: { room: string }) => {
       const user = await authenticationService.getUserFromToken(
         socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
       );
-      if (!user) return nsp.emit("edited-note", "Not able to find user");
+      if (!user) return;
 
-      const note = await noteService.findById(content.id);
-      if (!note) return nsp.emit("edited-note", "Not able to find note");
+      const note = await noteService.findByRoom(content.room);
+      if (!note) return nsp.to(note.room).emit("join-room", "Room not found");
+
+      if (note.owner_id !== user.id && !note.members.includes(user.id)) {
+        note.members.push(user.id);
+        await noteService.update(note.id, { members: note.members });
+      }
+
+      socket.join(content.room);
+      nsp.to(note.room).emit("join-room", "Joined room successfully");
+    });
+
+    socket.on("edit-note", async (content: UpdateNoteDTO & { room: string }) => {
+      const user = await authenticationService.getUserFromToken(
+        socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
+      );
+      if (!user) return;
+
+      const note = await noteService.findByRoom(content.room);
+      if (!note) return nsp.to(note.room).emit("edited-note", "Not able to find note");
 
       if (note.owner_id !== user.id && note.members.every((m) => m !== user.id))
-        return nsp.emit("edited-note", "Unauthorized");
+        return nsp.to(note.room).emit("edited-note", "Unauthorized");
 
-      const updated = await noteService.update(content.id, {
+      const updated = await noteService.update(note.id, {
         title: content.title,
         content: content.content,
-        owner_id: user.id,
         members: content.members,
       });
 
-      nsp.emit("edited-note", updated);
+      socket.join(note.room);
+      nsp.to(note.room).emit("edited-note", updated);
     });
 
-    socket.on("delete-note", async (content) => {
+    socket.on("delete-note", async (content: { room: string }) => {
       const user = await authenticationService.getUserFromToken(
         socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
       );
-      if (!user) return nsp.emit("deleted-note", "Unauthorized");
+      if (!user) return;
 
-      const note = await noteService.findById(content.id);
-      if (!note) return nsp.emit("deleted-note", "Unauthorized");
+      const note = await noteService.findByRoom(content.room);
+      if (!note) return nsp.to(note.room).emit("deleted-note", "Unauthorized");
 
       if (note.owner_id !== user.id && note.members.every((m) => m !== user.id))
-        return nsp.emit("deleted-note", "Unauthorized");
+        return nsp.to(note.room).emit("deleted-note", "Unauthorized");
 
-      const deleted = await noteService.delete(content.id);
-      nsp.emit("deleted-note", deleted);
+      const deleted = await noteService.delete(note.id);
+
+      socket.join(note.room);
+      nsp.to(note.room).emit("deleted-note", deleted);
     });
 
     socket.on("disconnect", () => {

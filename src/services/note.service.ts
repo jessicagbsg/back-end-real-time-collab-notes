@@ -35,6 +35,7 @@ export class NoteService implements INoteService {
     const createdNote = await this.noteRepository.create(data);
     return {
       title: createdNote.title,
+      room: createdNote.room,
       content: createdNote.content,
       owner_id: createdNote.owner_id,
       members: createdNote.members,
@@ -47,6 +48,7 @@ export class NoteService implements INoteService {
     if (!note) return null;
     return {
       id: note.id,
+      room: note.room,
       title: note.title,
       content: note.content,
       owner_id: note.owner_id,
@@ -55,7 +57,11 @@ export class NoteService implements INoteService {
     };
   }
 
-  async update(id: string, data: CreateNoteDTO) {
+  async findByRoom(room: string) {
+    return this.noteRepository.findByRoom(room);
+  }
+
+  async update(id: string, data: UpdateNoteDTO) {
     const updatedNote = await this.noteRepository.update(id, data);
     return { id, updated: updatedNote };
   }

@@ -13,6 +13,10 @@ const NoteSchema = new mongoose.Schema({
   members: {
     type: [String],
   },
+  room: {
+    type: String,
+    unique: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -37,6 +41,7 @@ export type CreateNoteDTO = {
 export type UpdateNoteDTO = Omit<CreateNoteDTO, "owner_id">;
 
 export type CreatedNoteResponse = {
+  room: string;
   title?: string;
   content?: string;
   owner_id: string;
@@ -46,6 +51,7 @@ export type CreatedNoteResponse = {
 
 export type FindNoteResponse = {
   id: string;
+  room: string;
   title: string | null;
   content: string | null;
   owner_id: string;

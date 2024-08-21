@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { AuthenticatedUserResponse } from "../../database/models/users";
 
 dotenv.config();
 

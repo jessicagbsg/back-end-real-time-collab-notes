@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { CreateNoteDTO, NoteModel, UpdateNoteDTO } from "../models/notes";
 
 export interface INoteRepository {
@@ -16,12 +17,19 @@ export class NoteRepository implements INoteRepository {
   }
 
   async create(data: CreateNoteDTO) {
-    const createdNote = await NoteModel.create(data);
+    const createdNote = await NoteModel.create({
+      ...data,
+      room: crypto.randomBytes(16).toString("hex"),
+    });
     return createdNote.toObject();
   }
 
   async findById(id: string) {
     return NoteModel.findById(id);
+  }
+
+  async findByRoom(room: string) {
+    return NoteModel.findOne({ room });
   }
 
   async update(id: string, data: UpdateNoteDTO) {
