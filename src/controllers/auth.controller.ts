@@ -10,6 +10,7 @@ type AuthenticationControllerDependencies = {
 export interface IAuthenticationController {
   register(req: Request, res: Response): Promise<void>;
   login(req: Request, res: Response): Promise<void>;
+  validateUser(req: Request, res: Response): Promise<void>;
 }
 
 export class AuthenticationController implements IAuthenticationController {
@@ -19,6 +20,7 @@ export class AuthenticationController implements IAuthenticationController {
     this.authenticationService = authenticationService;
     this.register = this.register.bind(this);
     this.login = this.login.bind(this);
+    this.validateUser = this.validateUser.bind(this);
   }
 
   async register(req: Request, res: Response) {
@@ -37,6 +39,16 @@ export class AuthenticationController implements IAuthenticationController {
       const data: UserLoginDTO = req.body;
       const login = await this.authenticationService.login(data);
       res.status(200).json(login);
+    } catch (error) {
+      res.status(401).json({ message: error.message });
+    }
+  }
+
+  async validateUser(req: Request, res: Response) {
+    try {
+      const token = req.headers.authorization.split(" ")[1];
+      const user = await this.authenticationService.getUserFromToken(token);
+      res.status(200).json(user);
     } catch (error) {
       res.status(401).json({ message: error.message });
     }

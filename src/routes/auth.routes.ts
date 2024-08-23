@@ -11,5 +11,6 @@ const authenticationRouter = Router();
 
 authenticationRouter.post("/register", authenticationController.register);
 authenticationRouter.post("/login", authenticationController.login);
+authenticationRouter.get("/", authenticationController.validateUser);
 
 export { authenticationRouter };
