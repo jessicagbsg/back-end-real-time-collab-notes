@@ -16,11 +16,11 @@ type NoteServiceDependencies = {
 
 export interface INoteService {
   create(data: CreateNoteDTO): Promise<CreatedNoteResponse>;
-  findById(id: string): Promise<FindNoteResponse>;
-  findByRoom(room: string): Promise<FindNoteResponse>;
-  findAllByOwner(id: string): Promise<FindNoteResponse[]>;
+  findById(id: string, userId: string): Promise<FindNoteResponse>;
+  findByRoom(room: string, userId: string): Promise<FindNoteResponse>;
+  findAllByOwner(ownerId: string): Promise<FindNoteResponse[]>;
   update(id: string, data: UpdateNoteDTO): Promise<UpdatedNoteResponse>;
-  delete(id: string): Promise<DeletedNoteResponse>;
+  delete(id: string, userId: string): Promise<DeletedNoteResponse>;
 }
 
 export class NoteService implements INoteService {
@@ -37,6 +37,7 @@ export class NoteService implements INoteService {
     this.findAllByOwner = this.findAllByOwner.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
+    this.validateAccessToGetOrUpdateNote = this.validateAccessToGetOrUpdateNote.bind(this);
   }
 
   async create(data: CreateNoteDTO) {
@@ -54,9 +55,12 @@ export class NoteService implements INoteService {
     };
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId: string) {
     const note = await this.noteRepository.findById(id);
     if (!note) return null;
+
+    await this.validateAccessToGetOrUpdateNote(userId, note.id);
+
     return {
       id: note.id,
       room: note.room,
@@ -82,9 +86,12 @@ export class NoteService implements INoteService {
     }));
   }
 
-  async findByRoom(room: string) {
+  async findByRoom(room: string, userId: string) {
     const note = await this.noteRepository.findByRoom(room);
     if (!note) return null;
+
+    // await this.validateAccessToGetOrUpdateNote(userId, note.id);
+
     return {
       id: note.id,
       room: note.room,
@@ -101,8 +108,22 @@ export class NoteService implements INoteService {
     return { id, updated: updatedNote };
   }
 
-  async delete(id: string) {
+  async delete(id: string, userId: string) {
+    await this.validateAccessToGetOrUpdateNote(userId, id);
+
     const deletedNote = await this.noteRepository.delete(id);
     return { id, deleted: deletedNote };
+  }
+
+  private async validateAccessToGetOrUpdateNote(userId: string, noteId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    const note = await this.noteRepository.findById(noteId);
+    if (!note) throw new Error("Note not found");
+
+    if (note.ownerId !== userId && !note.members.includes(userId)) {
+      throw new Error("Unauthorized");
+    }
   }
 }

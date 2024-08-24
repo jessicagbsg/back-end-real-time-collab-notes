@@ -4,7 +4,7 @@ import { UserRepository } from "./database/repositories/user.repository";
 import { AuthenticationService } from "./services/auth.service";
 import { NoteService } from "./services/note.service";
 import { NoteRepository } from "./database/repositories/note.repository";
-import { CreateNoteDTO, UpdateNoteDTO } from "./database/models/notes";
+import { UpdateNoteDTO } from "./database/models/notes";
 
 const userRepository = new UserRepository();
 const authenticationService = new AuthenticationService({ userRepository });
@@ -22,31 +22,18 @@ export const setUpSocket = (
     },
   });
 
-  const nsp = io.of("/notes");
+  const nsp = io.of("/api/note");
 
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers.access_token?.toString();
-    if (!token) return next(new Error("Authentication error"));
+    if (!token) return "Authentication error";
     const user = authenticationService.getUserFromToken(token);
-    if (!user) return next(new Error("Authentication error"));
+    if (!user) return "Authentication error";
     return next();
   });
 
   nsp.on("connection", (socket) => {
     console.log("New client connected");
-
-    // socket.on("create-note", async (content: CreateNoteDTO) => {
-    //   const user = await authenticationService.getUserFromToken(
-    //     socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
-    //   );
-    //   if (!user) return;
-
-    //   content.ownerId = user.id;
-    //   const note = await noteService.create(content);
-
-    //   socket.join(note.room);
-    //   nsp.to(note.room).emit("created-note", note);
-    // });
 
     socket.on("join-room", async (content: { room: string }) => {
       const user = await authenticationService.getUserFromToken(
@@ -54,7 +41,7 @@ export const setUpSocket = (
       );
       if (!user) return;
 
-      const note = await noteService.findByRoom(content.room);
+      const note = await noteService.findByRoom(content.room, user.id);
       if (!note) return nsp.to(note.room).emit("join-room", "Room not found");
 
       if (note.ownerId !== user.id && !note.members.includes(user.id)) {
@@ -72,11 +59,8 @@ export const setUpSocket = (
       );
       if (!user) return;
 
-      const note = await noteService.findByRoom(content.room);
-      if (!note) return nsp.to(note.room).emit("edited-note", "Not able to find note");
-
-      if (note.ownerId !== user.id && note.members.every((m) => m !== user.id))
-        return nsp.to(note.room).emit("edited-note", "Unauthorized");
+      const note = await noteService.findByRoom(content.room, user.id);
+      if (!note) return nsp.to(content.room).emit("edit-note", "Not able to find note");
 
       const updated = await noteService.update(note.id, {
         title: content.title,
@@ -84,8 +68,14 @@ export const setUpSocket = (
         members: content.members,
       });
 
-      socket.join(note.room);
-      nsp.to(note.room).emit("edited-note", updated);
+      socket.join(content.room);
+      nsp
+        .to(content.room)
+        .emit("edit-note", {
+          title: content.title,
+          content: content.content,
+          members: content.members,
+        });
     });
 
     socket.on("delete-note", async (content: { room: string }) => {
@@ -94,13 +84,10 @@ export const setUpSocket = (
       );
       if (!user) return;
 
-      const note = await noteService.findByRoom(content.room);
-      if (!note) return nsp.to(note.room).emit("deleted-note", "Unauthorized");
+      const note = await noteService.findByRoom(content.room, user.id);
+      if (!note) return nsp.to(note.room).emit("deleted-note", "Not able to find note");
 
-      if (note.ownerId !== user.id && note.members.every((m) => m !== user.id))
-        return nsp.to(note.room).emit("deleted-note", "Unauthorized");
-
-      const deleted = await noteService.delete(note.id);
+      const deleted = await noteService.delete(note.id, user.id);
 
       socket.join(note.room);
       nsp.to(note.room).emit("deleted-note", deleted);

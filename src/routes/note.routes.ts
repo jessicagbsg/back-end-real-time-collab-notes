@@ -13,5 +13,6 @@ const noteRouter = Router();
 
 noteRouter.post("/create", noteController.create);
 noteRouter.get("/", noteController.findAllByOwner);
+noteRouter.get("/:roomId", noteController.findByRoomId);
 
 export { noteRouter };

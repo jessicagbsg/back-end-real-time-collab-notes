@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import type { INoteService } from "../services/note.service";
+import { AuthenticatedUserResponse } from "../database/models/users";
 
 type noteControllerDependencies = {
   noteService: INoteService;
@@ -8,6 +9,7 @@ type noteControllerDependencies = {
 export interface INoteController {
   create(req: Request, res: Response): Promise<void>;
   findAllByOwner(req: Request, res: Response): Promise<void>;
+  findByRoomId(req: Request, res: Response): Promise<void>;
 }
 
 export class NoteController implements INoteController {
@@ -18,6 +20,7 @@ export class NoteController implements INoteController {
 
     this.create = this.create.bind(this);
     this.findAllByOwner = this.findAllByOwner.bind(this);
+    this.findByRoomId = this.findByRoomId.bind(this);
   }
 
   async create(req: Request, res: Response) {
@@ -30,10 +33,21 @@ export class NoteController implements INoteController {
     }
   }
 
+  async findByRoomId(req: Request, res: Response) {
+    try {
+      const user = req.body.user as AuthenticatedUserResponse;
+      const roomId = req.params.roomId;
+      const note = await this.noteService.findByRoom(roomId, user.id);
+      res.status(200).json(note);
+    } catch (error) {
+      res.status(409).json({ message: error.message });
+    }
+  }
+
   async findAllByOwner(req: Request, res: Response) {
     try {
-      const ownerId = req.query.owner_id as string;
-      const notes = await this.noteService.findAllByOwner(ownerId);
+      const user = req.body.user as AuthenticatedUserResponse;
+      const notes = await this.noteService.findAllByOwner(user.id);
       res.status(200).json(notes);
     } catch (error) {
       res.status(409).json({ message: error.message });

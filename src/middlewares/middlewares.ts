@@ -13,21 +13,21 @@ export default (app: Express): void => {
   app.use(
     cors({
       credentials: true,
-      origin: "*",
-      methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-      preflightContinue: true,
-      allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "Content-Length",
-        "X-Requested-With",
-        "Origin",
-        "Accept",
-        "x-access-token",
-        "x-app",
-      ],
-      optionsSuccessStatus: 200,
-      maxAge: 864000,
+      origin: "http://localhost:5173",
+      methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+      // preflightContinue: true,
+      // allowedHeaders: [
+      //   "Content-Type",
+      //   "Authorization",
+      //   "Content-Length",
+      //   "X-Requested-With",
+      //   "Origin",
+      //   "Accept",
+      //   "x-access-token",
+      //   "x-app",
+      // ],
+      // optionsSuccessStatus: 200,
+      // maxAge: 864000,
     })
   );
   app.use(compression());
