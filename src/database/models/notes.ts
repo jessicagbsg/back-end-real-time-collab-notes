@@ -7,7 +7,7 @@ const NoteSchema = new mongoose.Schema({
   content: {
     type: String,
   },
-  owner_id: {
+  ownerId: {
     type: String,
   },
   members: {
@@ -32,19 +32,19 @@ const NoteSchema = new mongoose.Schema({
 });
 
 export type CreateNoteDTO = {
-  owner_id: string;
+  ownerId: string;
   title?: string;
   content?: string;
   members?: string[];
 };
 
-export type UpdateNoteDTO = Omit<CreateNoteDTO, "owner_id">;
+export type UpdateNoteDTO = Omit<CreateNoteDTO, "ownerId">;
 
 export type CreatedNoteResponse = {
   room: string;
   title?: string;
   content?: string;
-  owner_id: string;
+  ownerId: string;
   members?: string[];
   createdAt: Date;
 };
@@ -54,7 +54,7 @@ export type FindNoteResponse = {
   room: string;
   title: string | null;
   content: string | null;
-  owner_id: string;
+  ownerId: string;
   members: string[] | null;
   createdAt: Date;
 };

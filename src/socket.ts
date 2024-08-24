@@ -9,7 +9,7 @@ import { CreateNoteDTO, UpdateNoteDTO } from "./database/models/notes";
 const userRepository = new UserRepository();
 const authenticationService = new AuthenticationService({ userRepository });
 const noteRepository = new NoteRepository();
-const noteService = new NoteService({ noteRepository });
+const noteService = new NoteService({ noteRepository, userRepository });
 
 export const setUpSocket = (
   server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -26,7 +26,6 @@ export const setUpSocket = (
 
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers.access_token?.toString();
-    console.log({ token });
     if (!token) return next(new Error("Authentication error"));
     const user = authenticationService.getUserFromToken(token);
     if (!user) return next(new Error("Authentication error"));
@@ -42,7 +41,7 @@ export const setUpSocket = (
     //   );
     //   if (!user) return;
 
-    //   content.owner_id = user.id;
+    //   content.ownerId = user.id;
     //   const note = await noteService.create(content);
 
     //   socket.join(note.room);
@@ -58,7 +57,7 @@ export const setUpSocket = (
       const note = await noteService.findByRoom(content.room);
       if (!note) return nsp.to(note.room).emit("join-room", "Room not found");
 
-      if (note.owner_id !== user.id && !note.members.includes(user.id)) {
+      if (note.ownerId !== user.id && !note.members.includes(user.id)) {
         note.members.push(user.id);
         await noteService.update(note.id, { members: note.members });
       }
@@ -76,7 +75,7 @@ export const setUpSocket = (
       const note = await noteService.findByRoom(content.room);
       if (!note) return nsp.to(note.room).emit("edited-note", "Not able to find note");
 
-      if (note.owner_id !== user.id && note.members.every((m) => m !== user.id))
+      if (note.ownerId !== user.id && note.members.every((m) => m !== user.id))
         return nsp.to(note.room).emit("edited-note", "Unauthorized");
 
       const updated = await noteService.update(note.id, {
@@ -98,7 +97,7 @@ export const setUpSocket = (
       const note = await noteService.findByRoom(content.room);
       if (!note) return nsp.to(note.room).emit("deleted-note", "Unauthorized");
 
-      if (note.owner_id !== user.id && note.members.every((m) => m !== user.id))
+      if (note.ownerId !== user.id && note.members.every((m) => m !== user.id))
         return nsp.to(note.room).emit("deleted-note", "Unauthorized");
 
       const deleted = await noteService.delete(note.id);

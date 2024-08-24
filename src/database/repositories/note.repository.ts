@@ -37,7 +37,7 @@ export class NoteRepository implements INoteRepository {
   }
 
   async findAllByOwner(ownerId: string) {
-    return NoteModel.find({ owner_id: ownerId, deletedAt: null });
+    return NoteModel.find({ ownerId, deletedAt: null });
   }
 
   async update(id: string, data: UpdateNoteDTO) {

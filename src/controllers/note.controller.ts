@@ -22,7 +22,7 @@ export class NoteController implements INoteController {
 
   async create(req: Request, res: Response) {
     try {
-      const data = req.body;
+      const data = req.body.note;
       const createdNote = await this.noteService.create(data);
       res.status(201).json(createdNote);
     } catch (error) {

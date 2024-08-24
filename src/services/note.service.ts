@@ -7,9 +7,11 @@ import type {
   UpdateNoteDTO,
   UpdatedNoteResponse,
 } from "../database/models/notes";
+import { UserRepository } from "../database/repositories/user.repository";
 
 type NoteServiceDependencies = {
   noteRepository: NoteRepository;
+  userRepository: UserRepository;
 };
 
 export interface INoteService {
@@ -23,9 +25,11 @@ export interface INoteService {
 
 export class NoteService implements INoteService {
   private readonly noteRepository: NoteRepository;
+  private readonly userRepository: UserRepository;
 
-  constructor({ noteRepository }: NoteServiceDependencies) {
+  constructor({ noteRepository, userRepository }: NoteServiceDependencies) {
     this.noteRepository = noteRepository;
+    this.userRepository = userRepository;
 
     this.create = this.create.bind(this);
     this.findById = this.findById.bind(this);
@@ -36,12 +40,15 @@ export class NoteService implements INoteService {
   }
 
   async create(data: CreateNoteDTO) {
+    const user = await this.userRepository.findById(data.ownerId);
+    if (!user) throw new Error("User not found");
+
     const createdNote = await this.noteRepository.create(data);
     return {
       title: createdNote.title,
       room: createdNote.room,
       content: createdNote.content,
-      owner_id: createdNote.owner_id,
+      ownerId: createdNote.ownerId,
       members: createdNote.members,
       createdAt: createdNote.createdAt,
     };
@@ -55,7 +62,7 @@ export class NoteService implements INoteService {
       room: note.room,
       title: note.title,
       content: note.content,
-      owner_id: note.owner_id,
+      ownerId: note.ownerId,
       members: note.members,
       createdAt: note.createdAt,
     };
@@ -63,13 +70,13 @@ export class NoteService implements INoteService {
 
   async findAllByOwner(ownerId: string) {
     const notes = await this.noteRepository.findAllByOwner(ownerId);
-    if (!notes.length) return null;
+    if (!notes.length) return [];
     return notes.map((note) => ({
       id: note.id,
       room: note.room,
       title: note.title,
       content: note.content,
-      owner_id: note.owner_id,
+      ownerId: note.ownerId,
       members: note.members,
       createdAt: note.createdAt,
     }));
@@ -83,7 +90,7 @@ export class NoteService implements INoteService {
       room: note.room,
       title: note.title,
       content: note.content,
-      owner_id: note.owner_id,
+      ownerId: note.ownerId,
       members: note.members,
       createdAt: note.createdAt,
     };

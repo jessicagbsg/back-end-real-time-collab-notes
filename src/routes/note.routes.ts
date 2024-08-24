@@ -2,15 +2,16 @@ import { Router } from "express";
 import { NoteController } from "../controllers/note.controller";
 import { NoteRepository } from "../database/repositories/note.repository";
 import { NoteService } from "../services/note.service";
-import { authorized } from "../middlewares/auth.middleware";
+import { UserRepository } from "../database/repositories/user.repository";
 
 const noteRepository = new NoteRepository();
-const noteService = new NoteService({ noteRepository });
+const userRepository = new UserRepository();
+const noteService = new NoteService({ noteRepository, userRepository });
 const noteController = new NoteController({ noteService });
 
 const noteRouter = Router();
 
-noteRouter.post("/create", authorized, noteController.create);
-noteRouter.post("/", authorized, noteController.findAllByOwner);
+noteRouter.post("/create", noteController.create);
+noteRouter.get("/", noteController.findAllByOwner);
 
 export { noteRouter };
