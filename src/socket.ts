@@ -36,18 +36,18 @@ export const setUpSocket = (
   nsp.on("connection", (socket) => {
     console.log("New client connected");
 
-    socket.on("create-note", async (content: CreateNoteDTO) => {
-      const user = await authenticationService.getUserFromToken(
-        socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
-      );
-      if (!user) return;
+    // socket.on("create-note", async (content: CreateNoteDTO) => {
+    //   const user = await authenticationService.getUserFromToken(
+    //     socket.handshake.auth.token || socket.handshake.headers.access_token?.toString()
+    //   );
+    //   if (!user) return;
 
-      content.owner_id = user.id;
-      const note = await noteService.create(content);
+    //   content.owner_id = user.id;
+    //   const note = await noteService.create(content);
 
-      socket.join(note.room);
-      nsp.to(note.room).emit("created-note", note);
-    });
+    //   socket.join(note.room);
+    //   nsp.to(note.room).emit("created-note", note);
+    // });
 
     socket.on("join-room", async (content: { room: string }) => {
       const user = await authenticationService.getUserFromToken(

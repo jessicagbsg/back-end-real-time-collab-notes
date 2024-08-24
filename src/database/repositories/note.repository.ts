@@ -4,6 +4,8 @@ import { CreateNoteDTO, NoteModel, UpdateNoteDTO } from "../models/notes";
 export interface INoteRepository {
   create(data: CreateNoteDTO): Promise<any>;
   findById(id: string): Promise<any>;
+  findByRoom(id: string): Promise<any>;
+  findAllByOwner(id: string): Promise<any>;
   update(id: string, data: UpdateNoteDTO): Promise<boolean>;
   delete(id: string): Promise<boolean>;
 }
@@ -12,6 +14,8 @@ export class NoteRepository implements INoteRepository {
   constructor() {
     this.create = this.create.bind(this);
     this.findById = this.findById.bind(this);
+    this.findByRoom = this.findByRoom.bind(this);
+    this.findAllByOwner = this.findAllByOwner.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
   }
@@ -25,11 +29,15 @@ export class NoteRepository implements INoteRepository {
   }
 
   async findById(id: string) {
-    return NoteModel.findById(id);
+    return NoteModel.findById(id, { deletedAt: null });
   }
 
   async findByRoom(room: string) {
-    return NoteModel.findOne({ room });
+    return NoteModel.findOne({ room, deletedAt: null });
+  }
+
+  async findAllByOwner(ownerId: string) {
+    return NoteModel.find({ owner_id: ownerId, deletedAt: null });
   }
 
   async update(id: string, data: UpdateNoteDTO) {

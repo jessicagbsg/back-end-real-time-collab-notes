@@ -46,6 +46,8 @@ export class AuthenticationService implements IAuthenticationService {
     return {
       id: createdUser.id,
       email: createdUser.email,
+      firstName: createdUser.firstName,
+      lastName: createdUser.lastName,
       token,
     };
   }
@@ -65,6 +67,8 @@ export class AuthenticationService implements IAuthenticationService {
     return {
       id: existingUser.id,
       email: existingUser.email,
+      firstName: existingUser.firstName,
+      lastName: existingUser.lastName,
       token,
     };
   }
@@ -75,6 +79,9 @@ export class AuthenticationService implements IAuthenticationService {
     return {
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      token,
     };
   }
 }
