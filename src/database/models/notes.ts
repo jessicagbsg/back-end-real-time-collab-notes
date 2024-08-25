@@ -57,6 +57,7 @@ export type FindNoteResponse = {
   ownerId: string;
   members: string[] | null;
   createdAt: Date;
+  updatedAt?: Date;
 };
 
 export type UpdatedNoteResponse = {

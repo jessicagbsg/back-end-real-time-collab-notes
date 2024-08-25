@@ -100,6 +100,7 @@ export class NoteService implements INoteService {
       ownerId: note.ownerId,
       members: note.members,
       createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
     };
   }
 

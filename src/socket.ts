@@ -88,12 +88,10 @@ export const setUpSocket = (
       userRooms.set(user.id, updatedRoomList);
 
       socket.leave(content.room);
-      nsp
-        .to(content.room)
-        .emit("leave-room", {
-          user: user.id,
-          message: `${capitalize(user.firstName)} ${capitalize(user.lastName)} left collaboration`,
-        });
+      nsp.to(content.room).emit("leave-room", {
+        user: user.id,
+        message: `${capitalize(user.firstName)} ${capitalize(user.lastName)} left collaboration`,
+      });
     });
 
     socket.on("edit-note", async (content: UpdateNoteDTO & { room: string }) => {
@@ -117,6 +115,7 @@ export const setUpSocket = (
         title: content.title,
         content: content.content,
         members: content.members,
+        updatedAt: Date.now(),
       });
     });
 
