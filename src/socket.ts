@@ -69,13 +69,12 @@ export const setUpSocket = (
       });
 
       socket.join(content.room);
-      nsp
-        .to(content.room)
-        .emit("edit-note", {
-          title: content.title,
-          content: content.content,
-          members: content.members,
-        });
+      nsp.to(content.room).emit("edit-note", updated);
+      nsp.to(content.room).emit("edit-note", {
+        title: content.title,
+        content: content.content,
+        members: content.members,
+      });
     });
 
     socket.on("delete-note", async (content: { room: string }) => {
