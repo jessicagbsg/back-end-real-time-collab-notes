@@ -110,7 +110,7 @@ export class NoteService implements INoteService {
   }
 
   async delete(id: string, userId: string) {
-    await this.validateAccessToGetOrUpdateNote(userId, id);
+    // await this.validateAccessToGetOrUpdateNote(userId, id);
 
     const deletedNote = await this.noteRepository.delete(id);
     return { id, deleted: deletedNote };

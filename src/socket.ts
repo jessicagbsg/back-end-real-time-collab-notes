@@ -103,14 +103,16 @@ export const setUpSocket = (
       const note = await noteService.findByRoom(content.room, user.id);
       if (!note) return nsp.to(content.room).emit("edit-note", "Not able to find note");
 
-      const updated = await noteService.update(note.id, {
+      if (note.ownerId !== user.id && !note.members.includes(user.id))
+        return nsp.to(content.room).emit("delete-note", "Not authorized");
+
+      await noteService.update(note.id, {
         title: content.title,
         content: content.content,
         members: content.members,
       });
 
       socket.join(content.room);
-      nsp.to(content.room).emit("edit-note", updated);
       nsp.to(content.room).emit("edit-note", {
         title: content.title,
         content: content.content,
@@ -126,15 +128,22 @@ export const setUpSocket = (
       if (!user) return;
 
       const note = await noteService.findByRoom(content.room, user.id);
-      if (!note) return nsp.to(note.room).emit("deleted-note", "Not able to find note");
+
+      if (!note) return nsp.to(content.room).emit("delete-note", "Not able to find note");
+
+      if (note.ownerId !== user.id && !note.members.includes(user.id))
+        return nsp.to(content.room).emit("delete-note", "Not authorized");
 
       const deleted = await noteService.delete(note.id, user.id);
 
-      socket.join(note.room);
-      nsp.to(note.room).emit("deleted-note", deleted);
+      socket.join(content.room);
+      nsp.to(content.room).emit("delete-note", deleted);
+      socket.leave(content.room);
+      socket.disconnect();
     });
 
     socket.on("disconnect", () => {
+      socket.disconnect();
       console.log("Client disconnected");
     });
   });

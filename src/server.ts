@@ -7,4 +7,4 @@ const server = http.createServer(app);
 
 setUpSocket(server);
 dbConnection();
-server.listen(3000, () => console.log(`Server running at ${process.env.BASE_URL}`));
+server.listen(process.env.PORT ?? 3000, () => console.log(`Server running at ${process.env.PORT}`));
