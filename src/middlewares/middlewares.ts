@@ -13,7 +13,7 @@ export default (app: Express): void => {
   app.use(
     cors({
       credentials: true,
-      origin: "http://localhost:5173",
+      origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
       // preflightContinue: true,
       // allowedHeaders: [
