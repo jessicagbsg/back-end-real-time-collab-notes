@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { z } from "zod";
 
 const NoteSchema = new mongoose.Schema({
   title: {
@@ -38,9 +39,23 @@ export type CreateNoteDTO = {
   members?: string[];
 };
 
+export const CreateNoteSchema = z.object({
+  ownerId: z.string(),
+  title: z.string().optional(),
+  content: z.string().optional(),
+  members: z.array(z.string()).optional(),
+});
+
 export type UpdateNoteDTO = Omit<CreateNoteDTO, "ownerId"> & {
   updatedAt: Date;
 };
+
+export const UpdateNoteSchema = z.object({
+  updatedAt: z.date(),
+  title: z.string().optional(),
+  content: z.string().optional(),
+  members: z.array(z.string()).optional(),
+});
 
 export type CreatedNoteResponse = {
   room: string;

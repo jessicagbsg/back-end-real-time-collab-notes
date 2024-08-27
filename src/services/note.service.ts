@@ -1,13 +1,16 @@
 import { NoteRepository } from "../database/repositories/note.repository";
-import type {
-  CreateNoteDTO,
-  CreatedNoteResponse,
-  DeletedNoteResponse,
-  FindNoteResponse,
-  UpdateNoteDTO,
-  UpdatedNoteResponse,
+import {
+  CreateNoteSchema,
+  UpdateNoteSchema,
+  type CreateNoteDTO,
+  type CreatedNoteResponse,
+  type DeletedNoteResponse,
+  type FindNoteResponse,
+  type UpdateNoteDTO,
+  type UpdatedNoteResponse,
 } from "../database/models/notes";
 import { UserRepository } from "../database/repositories/user.repository";
+import { ZodError } from "zod";
 
 type NoteServiceDependencies = {
   noteRepository: NoteRepository;
@@ -43,6 +46,8 @@ export class NoteService implements INoteService {
   async create(data: CreateNoteDTO) {
     const user = await this.userRepository.findById(data.ownerId);
     if (!user) throw new Error("User not found");
+
+    await this.validateCreateNoteData(data);
 
     const createdNote = await this.noteRepository.create(data);
     return {
@@ -105,6 +110,7 @@ export class NoteService implements INoteService {
   }
 
   async update(id: string, data: UpdateNoteDTO) {
+    await this.validateUpdateNoteData(data);
     const updatedNote = await this.noteRepository.update(id, data);
     return { id, updated: updatedNote };
   }
@@ -125,6 +131,28 @@ export class NoteService implements INoteService {
 
     if (note.ownerId !== userId && !note.members.includes(userId)) {
       throw new Error("Unauthorized");
+    }
+  }
+
+  private async validateCreateNoteData(data: CreateNoteDTO) {
+    try {
+      CreateNoteSchema.parse(data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw new Error(`Invalid data: ${error.message}`);
+      }
+      throw new Error("Invalid data");
+    }
+  }
+
+  private async validateUpdateNoteData(data: UpdateNoteDTO) {
+    try {
+      UpdateNoteSchema.parse(data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw new Error(`Invalid data: ${error.message}`);
+      }
+      throw new Error("Invalid data");
     }
   }
 }

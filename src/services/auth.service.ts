@@ -1,11 +1,13 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "../database/repositories/user.repository";
 import { createUserToken, decodeToken } from "../helpers/authentication/token";
-import type {
-  AuthenticatedUserResponse,
-  CreateUserDTO,
-  UserLoginDTO,
+import {
+  CreateUserSchema,
+  type AuthenticatedUserResponse,
+  type CreateUserDTO,
+  type UserLoginDTO,
 } from "../database/models/users";
+import { z, ZodError } from "zod";
 
 type AuthenticationServiceDependencies = {
   userRepository: UserRepository;
@@ -35,6 +37,8 @@ export class AuthenticationService implements IAuthenticationService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     data.password = hashedPassword;
+
+    await this.validateUser(data);
 
     const createdUser = await this.userRepository.createUser(data);
     if (!createdUser) throw new Error("Something went wrong when trying to create user");
@@ -74,7 +78,9 @@ export class AuthenticationService implements IAuthenticationService {
   }
 
   async getUserFromToken(token: string) {
+    if (!token || this.invalidToken(token)) return;
     const { id } = decodeToken(token);
+    if (!id) throw new Error("Invalid token");
     const user = await this.userRepository.findById(id);
     return {
       id: user.id,
@@ -83,5 +89,25 @@ export class AuthenticationService implements IAuthenticationService {
       lastName: user.lastName,
       token,
     };
+  }
+
+  private invalidToken(token: string) {
+    try {
+      decodeToken(token);
+      return false;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  private async validateUser(data: CreateUserDTO) {
+    try {
+      CreateUserSchema.parse(data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw new Error(`Invalid data: ${error.message}`);
+      }
+      throw new Error("Invalid data");
+    }
   }
 }

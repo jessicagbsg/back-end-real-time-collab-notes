@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { z } from "zod";
 
 const UserSchema = new mongoose.Schema({
   firstName: {
@@ -38,6 +39,13 @@ export type CreateUserDTO = {
   email: string;
   password: string;
 };
+
+export const CreateUserSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
 
 export type UserLoginDTO = {
   email: string;
