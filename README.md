@@ -7,8 +7,9 @@ This project was desienged to implement a collaborative real time note taking ap
 
 ## Layout
 
-go to [notesphere](https://fenotesphere.vercel.app/) to see the layout and interact with the application.
+Go to [notesphere](https://fenotesphere.vercel.app/) to see the layout and interact with the application. 
 
+Important note: users must be logged in to edit shared note.
 
 # Tools Used
 
