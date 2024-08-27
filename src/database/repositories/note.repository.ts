@@ -41,7 +41,7 @@ export class NoteRepository implements INoteRepository {
   }
 
   async update(id: string, data: UpdateNoteDTO) {
-    const updatedNote = await NoteModel.findByIdAndUpdate(id, { ...data, updatedAt: new Date() });
+    const updatedNote = await NoteModel.findByIdAndUpdate(id, { ...data });
     return updatedNote !== null;
   }
 

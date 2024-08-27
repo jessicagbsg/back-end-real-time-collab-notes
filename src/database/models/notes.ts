@@ -38,7 +38,9 @@ export type CreateNoteDTO = {
   members?: string[];
 };
 
-export type UpdateNoteDTO = Omit<CreateNoteDTO, "ownerId">;
+export type UpdateNoteDTO = Omit<CreateNoteDTO, "ownerId"> & {
+  updatedAt: Date;
+};
 
 export type CreatedNoteResponse = {
   room: string;

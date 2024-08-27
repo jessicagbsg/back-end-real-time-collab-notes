@@ -80,7 +80,7 @@ export const setUpSocket = (
 
       if (note.ownerId !== user.id && !note.members.includes(user.id)) {
         note.members.push(user.id);
-        await noteService.update(note.id, { members: note.members });
+        await noteService.update(note.id, { members: note.members, updatedAt: new Date() });
       }
 
       socket.join(room);
@@ -125,19 +125,19 @@ export const setUpSocket = (
         if (!user) return;
 
         const note = await noteService.findByRoom(room, user.id);
-        if (!note) return socket.emit("error", "Not able to find note");
+        if (!note) return socket.emit("error", "Note not found");
 
         if (note.ownerId !== user.id && !note.members.includes(user.id))
           return socket.emit("error", "Not authorized");
 
-        await noteService.update(note.id, { title, content, members });
+        const timestamp = new Date();
+        await noteService.update(note.id, { title, content, members, updatedAt: timestamp });
 
-        socket.join(room);
         nsp.to(room).emit("edit-note", {
           title,
           content,
           members,
-          updatedAt: Date.now(),
+          updatedAt: timestamp,
         });
       }
     );
